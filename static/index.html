@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asistente TI - Universidad de Navarra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Source Sans 3', sans-serif;
+      background: #f5f3ef;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background: #8B1A1A;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 3px solid #6B1010;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+    }
+
+    header span {
+      color: #c8b8b8;
+      font-size: 0.8rem;
+      margin-left: auto;
+    }
+
+    .token-info {
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #f0ece4;
+    }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      overflow: hidden;
+    }
+
+    .chat-area {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #f5f3ef;
+    }
+
+    .messages-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .welcome {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e0dbd2;
+      padding: 1.5rem;
+      border-left: 4px solid #c8102e;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: #1a1a2e;
+      margin-bottom: 0.4rem;
+    }
+
+    .welcome p {
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+
+    .sug-btn {
+      background: #f5f3ef;
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.83rem;
+      color: #333;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+      font-family: 'Source Sans 3', sans-serif;
+    }
+
+    .sug-btn:hover { background: #ece8e0; }
+
+    .msg {
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      max-width: 88%;
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+
+    .msg.user {
+      background: #1a1a2e;
+      color: #f0ece4;
+      align-self: flex-end;
+      border-radius: 8px 8px 2px 8px;
+    }
+
+    .msg.assistant {
+      background: white;
+      color: #2a2a2a;
+      border: 1px solid #e0dbd2;
+      align-self: flex-start;
+      border-radius: 8px 8px 8px 2px;
+    }
+
+    .msg.error {
+      background: #fff5f5;
+      color: #a32d2d;
+      border: 1px solid #f0c0c0;
+      align-self: flex-start;
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+
+    .modo-badge {
+      display: inline-block;
+      background: #1a1a2e;
+      color: #c8b8b8;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .typing {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 0.25rem 0;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      background: #c8102e;
+      border-radius: 50%;
+      animation: bounce 1s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.15s; }
+    .dot:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .input-area {
+      padding: 1rem 1.5rem;
+      background: #f5f3ef;
+      border-top: 1px solid #e0dbd2;
+      flex-shrink: 0;
+    }
+
+    .input-box {
+      background: white;
+      border: 1px solid #e0dbd2;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+
+    .mode-select {
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.83rem;
+      color: #1a1a2e;
+      background: #f5f3ef;
+      cursor: pointer;
+      outline: none;
+      flex-shrink: 0;
+      height: 36px;
+    }
+
+    .mode-select:focus { border-color: #c8102e; }
+
+    /* --- Panel de funcion (se abre al elegir una opcion del desplegable) --- */
+
+    .funcion-panel {
+      background: white;
+      border: 1px solid #e0dbd2;
+      border-left: 4px solid #8B1A1A;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      display: none;
+    }
+
+    .funcion-panel h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1a1a2e;
+      margin-bottom: 0.75rem;
+    }
+
+    .funcion-campos {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .funcion-campos input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.88rem;
+      color: #1a1a2e;
+      background: #f9f7f4;
+      outline: none;
+      height: 36px;
+    }
+
+    .funcion-campos input[type="text"]:focus { border-color: #c8102e; }
+
+    .funcion-campos select {
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.5rem 0.6rem;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.85rem;
+      color: #1a1a2e;
+      background: #f9f7f4;
+      outline: none;
+      cursor: pointer;
+      height: 36px;
+    }
+
+    .funcion-campos select:focus { border-color: #c8102e; }
+
+    .input-box textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.92rem;
+      color: #2a2a2a;
+      background: transparent;
+      line-height: 1.5;
+      max-height: 120px;
+    }
+
+    .input-box textarea::placeholder { color: #aaa; }
+
+    .send-btn {
+      background: #c8102e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.1rem;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+      height: 36px;
+    }
+
+    .send-btn:hover { background: #a50d26; }
+    .send-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .sidebar {
+      background: white;
+      border-left: 1px solid #e0dbd2;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #e0dbd2;
+      flex-shrink: 0;
+    }
+
+    .sidebar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: #1a1a2e;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.78rem;
+      color: #999;
+      margin-top: 0.2rem;
+    }
+
+    .sources-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .empty-sidebar {
+      color: #bbb;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 2rem 0;
+      line-height: 1.6;
+    }
+
+    .source-card {
+      background: #f9f7f4;
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 0.82rem;
+    }
+
+    .source-file {
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 0.35rem;
+      font-size: 0.83rem;
+      word-break: break-word;
+    }
+
+    .source-snippet {
+      color: #666;
+      line-height: 1.55;
+      font-style: italic;
+    }
+
+    .source-score {
+      display: inline-block;
+      background: #1a1a2e;
+      color: white;
+      font-size: 0.72rem;
+      padding: 1px 8px;
+      border-radius: 10px;
+      margin-top: 0.5rem;
+    }
+
+    /* --- Playground interactivo (bloques ```playground dentro de TIPO:TEXTO) --- */
+
+    .playground {
+      background: white;
+      border: 1px solid #e0dbd2;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 0.75rem 0;
+    }
+
+    .playground-label {
+      font-size: 0.7rem;
+      color: #8B1A1A;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      background: #f9f7f4;
+      border-bottom: 1px solid #e0dbd2;
+    }
+
+    .pg-code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      border: none;
+      border-bottom: 1px solid #e0dbd2;
+      padding: 0.75rem;
+      resize: vertical;
+      height: 150px;
+      background: #f9f7f4;
+      color: #1a1a2e;
+      outline: none;
+      width: 100%;
+      display: block;
+      line-height: 1.5;
+    }
+
+    .pg-preview {
+      border: none;
+      height: 220px;
+      background: white;
+      width: 100%;
+      display: block;
+    }
+
+    #examenPanel {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .examen-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .examen-config {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e0dbd2;
+      border-left: 4px solid #8B1A1A;
+      padding: 1.5rem;
+      max-width: 520px;
+    }
+
+    .examen-config h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: #1a1a2e;
+      margin-bottom: 0.75rem;
+    }
+
+    .examen-config p {
+      font-size: 0.88rem;
+      color: #555;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+
+    .examen-field { margin-bottom: 1rem; }
+
+    .examen-field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 0.35rem;
+    }
+
+    .examen-field input,
+    .examen-field select {
+      width: 100%;
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.88rem;
+      color: #1a1a2e;
+      background: #f9f7f4;
+      outline: none;
+    }
+
+    .examen-field input:focus,
+    .examen-field select:focus { border-color: #c8102e; }
+
+    .btn-primario {
+      background: #8B1A1A;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.4rem;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primario:hover { background: #6B1010; }
+    .btn-primario:disabled { background: #ccc; cursor: not-allowed; }
+
+    .btn-secundario {
+      background: #f5f3ef;
+      color: #1a1a2e;
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.6rem 1.4rem;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-secundario:hover { background: #ece8e0; }
+
+    .examen-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #1a1a2e;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .examen-progreso { font-size: 0.85rem; color: #c8b8b8; }
+
+    .examen-timer {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: white;
+      letter-spacing: 1px;
+    }
+
+    .examen-timer.urgente {
+      color: #ff6b6b;
+      animation: pulso 1s infinite;
+    }
+
+    @keyframes pulso {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .pregunta-card {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e0dbd2;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .pregunta-numero {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #8B1A1A;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .pregunta-texto {
+      font-size: 0.95rem;
+      color: #1a1a2e;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .respuesta-input {
+      width: 100%;
+      border: 1px solid #e0dbd2;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.88rem;
+      color: #1a1a2e;
+      background: #f9f7f4;
+      resize: vertical;
+      min-height: 100px;
+      outline: none;
+      line-height: 1.6;
+    }
+
+    .respuesta-input:focus { border-color: #c8102e; }
+
+    .examen-nav {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .resultado-card {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e0dbd2;
+      padding: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .resultado-card.correcto { border-left: 4px solid #2d8a4e; }
+    .resultado-card.parcial  { border-left: 4px solid #c8a020; }
+    .resultado-card.incorrecto { border-left: 4px solid #c8102e; }
+
+    .resultado-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .resultado-badge.correcto   { background: #e8f5ee; color: #2d8a4e; }
+    .resultado-badge.parcial    { background: #fef9e7; color: #c8a020; }
+    .resultado-badge.incorrecto { background: #fff5f5; color: #c8102e; }
+
+    .resultado-pregunta {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 0.5rem;
+    }
+
+    .resultado-seccion {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 0.5rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .resultado-texto {
+      font-size: 0.85rem;
+      color: #444;
+      line-height: 1.55;
+      font-family: 'Courier New', monospace;
+      background: #f9f7f4;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+
+    .resultado-comentario {
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.55;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .puntuacion-total {
+      background: #1a1a2e;
+      color: white;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .puntuacion-numero {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: white;
+    }
+
+    .puntuacion-label {
+      font-size: 0.85rem;
+      color: #c8b8b8;
+      margin-top: 0.2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="unav_marron.png" alt="Universidad de Navarra" style="height: 44px; width: auto;">
+    <h1>Asistente de asignaturas de Sistemas de información</h1>
+    <span style="color: #c8b8b8; font-size: 0.8rem; margin-left: auto;">RAG</span>
+  </header>
+
+  <div class="main">
+
+    <div class="chat-area" id="chatArea">
+      <div class="messages-scroll" id="messagesScroll">
+
+        <div class="welcome">
+          <h2>Bienvenido al asistente de la asignatura</h2>
+          <p>Escribe lo que necesites en tus propias palabras: un resumen, un examen, flashcards, ejercicios o cualquier otra cosa que te ayude a estudiar. Puedes seguir pidiendo cambios sobre lo que te responda ("hazlo mas corto", "cambia la pregunta 2"). El desplegable <strong>Funciones</strong> te da atajos para las peticiones mas habituales.</p>
+        </div>
+
+        <div id="messages"></div>
+
+      </div>
+
+      <div class="input-area">
+
+        <div class="funcion-panel" id="funcionPanel">
+          <h3 id="funcionTitulo">Funcion</h3>
+          <div class="funcion-campos">
+            <input
+              type="text"
+              id="funcionTema"
+              placeholder="Escribe el tema..."
+              onkeydown="if(event.key==='Enter'){event.preventDefault();generarDesdePanel();}"
+            >
+            <select id="funcionCantidad" style="display:none;"></select>
+            <button class="btn-primario" style="height:36px;padding:0.4rem 1.1rem;font-size:0.88rem;" onclick="generarDesdePanel()">Generar</button>
+            <button class="btn-secundario" style="height:36px;padding:0.4rem 1.1rem;font-size:0.88rem;" onclick="cerrarPanelFuncion()">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="input-box">
+          <select class="mode-select" id="funcionesSelect" onchange="seleccionarFuncion(this)">
+            <option value="" selected disabled>Funciones</option>
+            <option value="resumen">Resumen</option>
+            <option value="flashcards">Flashcards</option>
+            <option value="examen_cronometrado">Examen cronometrado</option>
+            <option value="ejercicios">Ejercicios</option>
+            <option value="esquema">Esquema</option>
+            <option value="apuntes">Apuntes interactivos</option>
+          </select>
+          <textarea
+            id="questionInput"
+            rows="1"
+            placeholder="Escribe tu consulta..."
+            oninput="autoResize(this)"
+            onkeydown="handleKey(event)"
+          ></textarea>
+          <a href="/panel-profesor" class="send-btn" style="text-decoration:none; display:inline-flex; align-items:center;">Panel del Profesor</a>
+          <button class="send-btn" id="sendBtn" onclick="sendQuestion()">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="examenPanel">
+      <div id="examenConfig" class="examen-scroll">
+        <div class="examen-config">
+          <h2>Examen cronometrado</h2>
+          <p>Escribe el tema sobre el que quieres ser evaluado, elige el numero de preguntas y el tiempo disponible. El examen comenzara cuando pulses el boton.</p>
+          <div class="examen-field">
+            <label>Tema del examen</label>
+            <input type="text" id="examenTema" placeholder="Ej: consultas SQL, modelo relacional...">
+          </div>
+          <div class="examen-field">
+            <label>Numero de preguntas</label>
+            <select id="examenNumPreguntas">
+              <option value="4">4 preguntas</option>
+              <option value="6" selected>6 preguntas</option>
+              <option value="8">8 preguntas</option>
+            </select>
+          </div>
+          <div class="examen-field">
+            <label>Tiempo disponible</label>
+            <select id="examenTiempo">
+              <option value="5">5 minutos</option>
+              <option value="10" selected>10 minutos</option>
+              <option value="15">15 minutos</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
+            <button class="btn-primario" id="btnIniciarExamen" onclick="iniciarExamen()">Comenzar examen</button>
+            <button class="btn-secundario" onclick="volverAlChat()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="examenPreguntas" style="display:none; flex-direction:column; height:100%;">
+        <div class="examen-header-bar">
+          <div class="examen-progreso" id="examenProgreso">Pregunta 1 de 6</div>
+          <div class="examen-timer" id="examenTimer">10:00</div>
+        </div>
+        <div class="examen-scroll">
+          <div class="pregunta-card">
+            <div class="pregunta-numero" id="preguntaNumero">Pregunta 1</div>
+            <div class="pregunta-texto" id="preguntaTexto"></div>
+            <textarea class="respuesta-input" id="respuestaInput" placeholder="Escribe tu respuesta aqui."></textarea>
+          </div>
+          <div class="examen-nav">
+            <button class="btn-secundario" id="btnAnterior" onclick="preguntaAnterior()" style="display:none;">Pregunta anterior</button>
+            <button class="btn-primario" id="btnSiguiente" onclick="siguientePregunta()">Siguiente pregunta</button>
+            <button class="btn-secundario" onclick="confirmarAbandonar()">Abandonar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="examenResultados" style="display:none;" class="examen-scroll">
+        <div id="resultadosContenido"></div>
+        <div style="display:flex; gap:0.75rem; margin-top:0.5rem; margin-bottom:2rem;">
+          <button class="btn-primario" onclick="repetirExamen()">Repetir examen</button>
+          <button class="btn-secundario" onclick="volverAlChat()">Volver al chat</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Fuentes consultadas</div>
+        <div class="sidebar-subtitle">Fragmentos de la wiki usados para generar la respuesta</div>
+      </div>
+      <div class="sources-scroll" id="sourcesArea">
+        <div class="empty-sidebar">Las fuentes aparecerán aquí cuando hagas una consulta</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <script>
+    let examenPreguntas = [];
+    let examenRespuestas = [];
+    let examenIndice = 0;
+    let examenTimer = null;
+    let examenSegundosRestantes = 0;
+    let examenTemaActual = '';
+    let examenNumActual = 4;
+    let historialChat = [];
+
+    const FUNCIONES_CONFIG = {
+      resumen: {
+        titulo: 'Resumen',
+        placeholder: 'Ej: normalizacion de bases de datos',
+        cantidades: null,
+        componer: (tema, n) => `Genera un resumen estructurado sobre ${tema}`
+      },
+      flashcards: {
+        titulo: 'Flashcards',
+        placeholder: 'Ej: formularios HTML',
+        cantidades: { opciones: [4, 6, 8], defecto: 6, etiqueta: 'flashcards' },
+        componer: (tema, n) => `Genera ${n} flashcards sobre ${tema}`
+      },
+      ejercicios: {
+        titulo: 'Ejercicios',
+        placeholder: 'Ej: consultas SQL',
+        cantidades: { opciones: [2, 3, 5], defecto: 3, etiqueta: 'ejercicios' },
+        componer: (tema, n) => `Genera ${n} ejercicios practicos con su solucion razonada sobre ${tema}`
+      },
+      esquema: {
+        titulo: 'Esquema',
+        placeholder: 'Ej: arquitectura cliente-servidor',
+        cantidades: null,
+        componer: (tema, n) => `Genera un esquema jerarquico con los conceptos clave sobre ${tema}`
+      },
+      apuntes: {
+        titulo: 'Apuntes interactivos',
+        placeholder: 'Ej: formularios HTML',
+        cantidades: null,
+        componer: (tema, n) => `Genera unos apuntes interactivos sobre ${tema}, con ejemplos de codigo editable si el tema lo permite`
+      }
+    };
+
+    let funcionActiva = null;
+
+    function seleccionarFuncion(sel) {
+      const valor = sel.value;
+
+      // Se resetea el desplegable a la opcion "Funciones" siempre, para
+      // que elegir la misma opcion dos veces seguidas vuelva a disparar
+      // el evento onchange (si el valor no cambia, el evento no salta).
+      sel.selectedIndex = 0;
+
+      if (!valor) return;
+
+      if (valor === 'examen_cronometrado') {
+        cerrarPanelFuncion();
+        mostrarPanelExamen();
+        return;
+      }
+
+      abrirPanelFuncion(valor);
+    }
+
+    function abrirPanelFuncion(valor) {
+      const config = FUNCIONES_CONFIG[valor];
+      if (!config) return;
+
+      funcionActiva = valor;
+      document.getElementById('funcionTitulo').textContent = config.titulo;
+
+      const campoTema = document.getElementById('funcionTema');
+      campoTema.value = '';
+      campoTema.placeholder = config.placeholder;
+
+      // El selector de cantidad solo se muestra para las funciones que lo
+      // definen (flashcards, ejercicios), con sus propias opciones.
+      const campoCantidad = document.getElementById('funcionCantidad');
+      if (config.cantidades) {
+        campoCantidad.innerHTML = '';
+        config.cantidades.opciones.forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n;
+          opt.textContent = `${n} ${config.cantidades.etiqueta}`;
+          if (n === config.cantidades.defecto) opt.selected = true;
+          campoCantidad.appendChild(opt);
+        });
+        campoCantidad.style.display = 'inline-block';
+      } else {
+        campoCantidad.style.display = 'none';
+      }
+
+      document.getElementById('funcionPanel').style.display = 'block';
+      campoTema.focus();
+    }
+
+    function cerrarPanelFuncion() {
+      funcionActiva = null;
+      document.getElementById('funcionPanel').style.display = 'none';
+    }
+
+    function generarDesdePanel() {
+      if (!funcionActiva) return;
+      const config = FUNCIONES_CONFIG[funcionActiva];
+
+      const tema = document.getElementById('funcionTema').value.trim();
+      if (!tema) {
+        document.getElementById('funcionTema').focus();
+        return;
+      }
+
+      const n = config.cantidades
+        ? parseInt(document.getElementById('funcionCantidad').value)
+        : null;
+
+      const peticion = config.componer(tema, n);
+      cerrarPanelFuncion();
+
+      // La peticion compuesta entra por el mismo camino que una escrita a
+      // mano: se pone en el input y se dispara sendQuestion(), que la
+      // muestra como mensaje del usuario, la anade al historial y la manda
+      // a /api/chat. Cero logica nueva de envio.
+      const input = document.getElementById('questionInput');
+      input.value = peticion;
+      autoResize(input);
+      sendQuestion();
+    }
+
+    function mostrarPanelExamen() {
+      document.getElementById('chatArea').style.display = 'none';
+      document.getElementById('examenPanel').style.display = 'flex';
+      document.getElementById('examenPanel').style.flexDirection = 'column';
+      document.getElementById('examenConfig').style.display = 'block';
+      document.getElementById('examenPreguntas').style.display = 'none';
+      document.getElementById('examenResultados').style.display = 'none';
+    }
+
+    function volverAlChat() {
+      pararTimer();
+      document.getElementById('examenPanel').style.display = 'none';
+      document.getElementById('chatArea').style.display = 'flex';
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function fillQuestion(q) {
+      const input = document.getElementById('questionInput');
+      input.value = q;
+      autoResize(input);
+      input.focus();
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuestion(); }
+    }
+
+    function scrollToBottom() {
+      const scroll = document.getElementById('messagesScroll');
+      scroll.scrollTop = scroll.scrollHeight;
+    }
+
+    async function iniciarExamen() {
+      const tema = document.getElementById('examenTema').value.trim();
+      if (!tema) { alert('Escribe un tema para el examen.'); return; }
+      const numPreguntas = parseInt(document.getElementById('examenNumPreguntas').value);
+      const minutos = parseInt(document.getElementById('examenTiempo').value);
+      const btn = document.getElementById('btnIniciarExamen');
+      btn.disabled = true;
+      btn.textContent = 'Generando preguntas...';
+      try {
+        const res = await fetch('/api/examen/generar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tema, num_preguntas: numPreguntas })
+        });
+        const data = await res.json();
+        if (data.error) { alert('Error: ' + data.error); btn.disabled = false; btn.textContent = 'Comenzar examen'; return; }
+        examenPreguntas = data.preguntas;
+        examenRespuestas = new Array(examenPreguntas.length).fill('');
+        examenIndice = 0;
+        examenTemaActual = tema;
+        examenSegundosRestantes = minutos * 60;
+        arrancarTimer();
+        document.getElementById('examenConfig').style.display = 'none';
+        document.getElementById('examenPreguntas').style.display = 'flex';
+        mostrarPregunta(0);
+      } catch (e) { alert('No se pudo conectar con el servidor.'); btn.disabled = false; btn.textContent = 'Comenzar examen'; }
+    }
+
+    function mostrarPregunta(i) {
+      const total = examenPreguntas.length;
+      document.getElementById('examenProgreso').textContent = `Pregunta ${i + 1} de ${total}`;
+      document.getElementById('preguntaNumero').textContent = `Pregunta ${i + 1}`;
+      document.getElementById('preguntaTexto').textContent = examenPreguntas[i].pregunta;
+      document.getElementById('respuestaInput').value = examenRespuestas[i] || '';
+      document.getElementById('btnSiguiente').textContent = i < total - 1 ? 'Siguiente pregunta' : 'Finalizar examen';
+      document.getElementById('btnAnterior').style.display = i > 0 ? 'inline-block' : 'none';
+    }
+
+    function siguientePregunta() {
+      examenRespuestas[examenIndice] = document.getElementById('respuestaInput').value.trim();
+      if (examenIndice < examenPreguntas.length - 1) { examenIndice++; mostrarPregunta(examenIndice); }
+      else finalizarExamen();
+    }
+
+    function preguntaAnterior() {
+      examenRespuestas[examenIndice] = document.getElementById('respuestaInput').value.trim();
+      if (examenIndice > 0) { examenIndice--; mostrarPregunta(examenIndice); }
+    }
+
+    function confirmarAbandonar() {
+      if (confirm('¿Seguro que quieres abandonar el examen?')) { pararTimer(); volverAlChat(); }
+    }
+
+    function arrancarTimer() {
+      pararTimer();
+      actualizarDisplayTimer();
+      examenTimer = setInterval(() => {
+        examenSegundosRestantes--;
+        actualizarDisplayTimer();
+        if (examenSegundosRestantes <= 0) {
+          pararTimer();
+          examenRespuestas[examenIndice] = document.getElementById('respuestaInput').value.trim();
+          finalizarExamen(true);
+        }
+      }, 1000);
+    }
+
+    function pararTimer() { if (examenTimer) { clearInterval(examenTimer); examenTimer = null; } }
+
+    function actualizarDisplayTimer() {
+      const mins = Math.floor(examenSegundosRestantes / 60);
+      const segs = examenSegundosRestantes % 60;
+      const el = document.getElementById('examenTimer');
+      el.textContent = `${String(mins).padStart(2,'0')}:${String(segs).padStart(2,'0')}`;
+      examenSegundosRestantes <= 60 ? el.classList.add('urgente') : el.classList.remove('urgente');
+    }
+
+    async function finalizarExamen(porTiempo = false) {
+      pararTimer();
+      document.getElementById('examenPreguntas').style.display = 'none';
+      document.getElementById('examenResultados').style.display = 'block';
+      document.getElementById('resultadosContenido').innerHTML = '<p style="color:#888; font-size:0.9rem;">Evaluando respuestas...</p>';
+      try {
+        const res = await fetch('/api/examen/evaluar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ preguntas: examenPreguntas, respuestas_usuario: examenRespuestas })
+        });
+        const data = await res.json();
+        if (data.error) { document.getElementById('resultadosContenido').innerHTML = `<p style="color:#a32d2d;">Error: ${data.error}</p>`; return; }
+        renderResultados(data, porTiempo);
+      } catch (e) { document.getElementById('resultadosContenido').innerHTML = '<p style="color:#a32d2d;">No se pudo conectar.</p>'; }
+    }
+
+    function renderResultados(data, porTiempo) {
+      const contenido = document.getElementById('resultadosContenido');
+      contenido.innerHTML = '';
+      if (porTiempo) {
+        const aviso = document.createElement('div');
+        aviso.style.cssText = 'background:#fff5f5;border:1px solid #f0c0c0;border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.87rem;color:#a32d2d;';
+        aviso.textContent = 'Tiempo agotado. El examen se ha enviado automaticamente.';
+        contenido.appendChild(aviso);
+      }
+      const puntuacion = document.createElement('div');
+      puntuacion.className = 'puntuacion-total';
+      puntuacion.innerHTML = `
+        <div>
+          <div class="puntuacion-label">Resultado del examen</div>
+          <div style="font-size:0.82rem;color:#c8b8b8;margin-top:0.2rem;">${examenTemaActual}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="puntuacion-numero">${data.puntuacion} / ${data.total}</div>
+          <div class="puntuacion-label">${Math.round((data.puntuacion/data.total)*100)}% de acierto</div>
+        </div>`;
+      contenido.appendChild(puntuacion);
+      data.resultados.forEach((r, i) => {
+        const card = document.createElement('div');
+        card.className = `resultado-card ${r.resultado}`;
+        const etiquetas = { correcto: 'Correcto', parcial: 'Parcial', incorrecto: 'Incorrecto' };
+        card.innerHTML = `
+          <span class="resultado-badge ${r.resultado}">${etiquetas[r.resultado]}</span>
+          <div class="resultado-pregunta">Pregunta ${i+1}: ${r.pregunta}</div>
+          <div class="resultado-seccion">Tu respuesta</div>
+          <div class="resultado-texto">${r.respuesta_usuario || '(sin respuesta)'}</div>
+          <div class="resultado-seccion">Respuesta correcta</div>
+          <div class="resultado-texto">${r.respuesta_correcta}</div>
+          <div class="resultado-comentario">${r.comentario}</div>`;
+        contenido.appendChild(card);
+      });
+      if (data.tokens) {
+        const t = document.createElement('div');
+        t.className = 'token-info';
+        t.style.marginBottom = '1rem';
+        t.textContent = `Tokens: ${data.tokens.total_tokens} · $${data.tokens.coste_usd}`;
+        contenido.appendChild(t);
+      }
+    }
+
+    function repetirExamen() {
+      pararTimer();
+      document.getElementById('examenResultados').style.display = 'none';
+      document.getElementById('examenConfig').style.display = 'block';
+      document.getElementById('btnIniciarExamen').disabled = false;
+      document.getElementById('btnIniciarExamen').textContent = 'Comenzar examen';
+    }
+
+    function parsearFlashcards(text) {
+      const cards = [];
+      const regex = /FRENTE:\s*(.+?)\s*DORSO:\s*(.+?)(?=\s*FRENTE:|$)/gis;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        const frente = match[1].trim();
+        const dorso = match[2].trim();
+        if (frente && dorso) cards.push({ frente, dorso });
+      }
+      return cards;
+    }
+
+    function renderFlashcards(cards) {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;flex-direction:column;gap:0.75rem;width:100%;';
+      const style = document.createElement('style');
+      style.textContent = `
+        .fc-card { perspective:800px; height:140px; cursor:pointer; width:100%; }
+        .fc-inner { position:relative; width:100%; height:100%; transition:transform 0.45s cubic-bezier(0.25,0.8,0.25,1); transform-style:preserve-3d; }
+        .fc-card.flipped .fc-inner { transform:rotateX(180deg); }
+        .fc-front, .fc-back { position:absolute; width:100%; height:100%; backface-visibility:hidden; border-radius:8px; display:flex; flex-direction:column; justify-content:center; padding:1rem 1.5rem; box-sizing:border-box; overflow:hidden; }
+        .fc-front { background:#1a1a2e; color:#f0ece4; }
+        .fc-back { background:#8B1A1A; color:white; transform:rotateX(180deg); }
+        .fc-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.8px; opacity:0.5; margin-bottom:0.35rem; }
+        .fc-text { font-size:0.88rem; line-height:1.45; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
+        .fc-hint { font-size:0.72rem; color:#bbb; text-align:center; margin-bottom:0.25rem; }
+      `;
+      wrapper.appendChild(style);
+      const hint = document.createElement('div');
+      hint.className = 'fc-hint';
+      hint.textContent = 'Haz clic en cada tarjeta para ver la respuesta';
+      wrapper.appendChild(hint);
+      cards.forEach((card, i) => {
+        const fc = document.createElement('div');
+        fc.className = 'fc-card';
+        fc.innerHTML = `<div class="fc-inner"><div class="fc-front"><div class="fc-label">Pregunta ${i+1}</div><div class="fc-text">${card.frente}</div></div><div class="fc-back"><div class="fc-label">Respuesta</div><div class="fc-text">${card.dorso}</div></div></div>`;
+        fc.onclick = () => fc.classList.toggle('flipped');
+        wrapper.appendChild(fc);
+      });
+      return wrapper;
+    }
+
+    function limpiarMarkdownSlides(markdown) {
+      return markdown.split('\n').map(linea => {
+        linea = linea.replace(/^`+/, '').replace(/`+$/, '');
+        linea = linea.replace(/^`(#{1,6} .+)`$/, '$1');
+        linea = linea.replace(/^`(- .+)`$/, '$1');
+        return linea;
+      }).join('\n').replace(/---\s*\n\s*---/g, '---').replace(/---\s*$/g, '');
+    }
+
+    function construirHtmlSlides(markdown) {
+      const markdownLimpio = limpiarMarkdownSlides(markdown);
+      return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Playfair+Display:wght@400;500&display=swap');
+        html,body{margin:0;padding:0;height:100%;overflow:hidden;}body{font-family:'Source Sans 3',sans-serif;}
+        .remark-slide-content{font-size:1.2rem;padding:2rem 3rem;background:#f5f3ef;color:#1a1a2e;}
+        .remark-slide-content h1{font-family:'Playfair Display',serif;color:#8B1A1A;border-bottom:3px solid #8B1A1A;padding-bottom:0.3rem;margin-bottom:1rem;}
+        .remark-slide-content h2{font-family:'Playfair Display',serif;color:#8B1A1A;margin-bottom:0.75rem;}
+        .remark-slide-content ul{line-height:2;}
+        .remark-slide-number{color:#999;font-size:0.85rem;}
+      </style></head><body>
+      <textarea id="source" style="display:none">${markdownLimpio.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+      <script src="https://remarkjs.com/downloads/remark-latest.min.js"><\/script>
+      <script>remark.create({source:document.getElementById('source').textContent.replace(/&lt;/g,'<').replace(/&gt;/g,'>'),ratio:'16:9',navigation:{scroll:false}});<\/script>
+      </body></html>`;
+    }
+
+    function construirHtmlApuntes(contenidoHtml) {
+      return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: 'Source Sans 3', Georgia, sans-serif; background: #f5f3ef; color: #1a1a2e; margin: 0; padding: 1.5rem 2rem; line-height: 1.7; }
+        h2 { font-family: Georgia, serif; font-size: 1.25rem; color: #8B1A1A; border-bottom: 2px solid #8B1A1A; padding-bottom: 0.3rem; margin: 1.5rem 0 0.75rem; }
+        h3 { font-size: 1rem; font-weight: 600; color: #1a1a2e; margin: 1.2rem 0 0.4rem; }
+        p, li { font-size: 0.93rem; color: #333; }
+        ul { padding-left: 1.4rem; }
+        code { font-family: 'Courier New', monospace; font-size: 0.85rem; background: #ece8e0; padding: 1px 5px; border-radius: 3px; }
+        .concepto-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 1rem 0; }
+        .concepto-card { background: white; border: 1px solid #e0dbd2; border-radius: 6px; padding: 0.6rem 0.9rem; }
+        .concepto-card .etiqueta { font-size: 0.7rem; color: #999; margin-bottom: 3px; }
+        .concepto-card .valor { font-size: 0.85rem; font-weight: 600; color: #1a1a2e; font-family: monospace; }
+        .mermaid { text-align: center; background: white; border: 1px solid #e0dbd2; border-radius: 6px; padding: 1rem; margin: 1rem 0; }
+        .mermaid > svg[aria-roledescription="error"] { display: none; }
+        .playground { background: white; border: 1px solid #e0dbd2; border-radius: 8px; overflow: hidden; margin: 1rem 0; display: grid; grid-template-columns: 1fr 1fr; }
+        .pg-code { font-family: 'Courier New', monospace; font-size: 0.82rem; border: none; border-right: 1px solid #e0dbd2; padding: 10px; resize: none; height: 160px; background: #f9f7f4; color: #1a1a2e; outline: none; width: 100%; box-sizing: border-box; }
+        .pg-preview { border: none; height: 160px; background: white; }
+        .nota { background: #f0f7ff; border-left: 3px solid #378ADD; padding: 0.6rem 1rem; margin: 0.75rem 0; font-size: 0.88rem; color: #185FA5; border-radius: 0 4px 4px 0; }
+      </style>
+      </head><body>
+      ${contenidoHtml}
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"><\/script>
+      <script>
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+        document.querySelectorAll('.mermaid').forEach(function(el) {
+          const codigo = el.textContent;
+          mermaid.render('mermaid-' + Math.random().toString(36).substr(2,9), codigo)
+            .then(function(result) {
+              el.innerHTML = result.svg;
+            })
+            .catch(function() {
+              el.innerHTML = '<p style="color:#888; font-size:0.85rem; font-style:italic; padding:0.5rem;">No se pudo renderizar el diagrama.</p>';
+            });
+        });
+        function runPG(ta) {
+          const iframe = ta.parentElement.querySelector('.pg-preview');
+          if (iframe) iframe.srcdoc = ta.value;
+        }
+        window.addEventListener('load', function() {
+          document.querySelectorAll('.pg-code').forEach(function(ta) { runPG(ta); });
+        });
+      <\/script>
+      </body></html>`;
+    }
+
+    function construirHtmlPlayground(codigo) {
+      const codigoEscapado = codigo
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      return `<div class="playground">
+        <div class="playground-label">Codigo interactivo · editalo y el resultado se actualiza abajo</div>
+        <textarea class="pg-code" oninput="runPG(this)">${codigoEscapado}</textarea>
+        <iframe class="pg-preview"></iframe>
+      </div>`;
+    }
+
+    function renderizarTextoConPlaygrounds(texto) {
+      const regex = /```playground\n([\s\S]*?)```/g;
+      let ultimoIndice = 0;
+      let html = '';
+      let match;
+      while ((match = regex.exec(texto)) !== null) {
+        const antes = texto.slice(ultimoIndice, match.index);
+        if (antes.trim()) html += marked.parse(antes);
+        html += construirHtmlPlayground(match[1]);
+        ultimoIndice = regex.lastIndex;
+      }
+      const resto = texto.slice(ultimoIndice);
+      if (resto.trim()) html += marked.parse(resto);
+      return html || marked.parse(texto);
+    }
+
+    function runPG(ta) {
+      const iframe = ta.parentElement.querySelector('.pg-preview');
+      if (iframe) iframe.srcdoc = ta.value;
+    }
+
+    function mostrarRespuesta(tipo, contenido, tokens) {
+      if (tipo === 'json' && Array.isArray(contenido) && contenido.length > 0) {
+        const primerElemento = contenido[0];
+        if ('frente' in primerElemento && 'dorso' in primerElemento) {
+          addMessageFlashcards(contenido);
+          return;
+        }
+        if ('pregunta' in primerElemento) {
+          addMessageExamenEnChat(contenido);
+          return;
+        }
+        addMessage(JSON.stringify(contenido, null, 2), 'assistant', tokens);
+        return;
+      }
+      addMessage(String(contenido), 'assistant', tokens);
+    }
+
+    function addMessageFlashcards(cards) {
+      const msgs = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'msg assistant';
+      div.appendChild(renderFlashcards(cards));
+      msgs.appendChild(div);
+      scrollToBottom();
+    }
+
+    function addMessageExamenEnChat(preguntas) {
+      const msgs = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'msg assistant';
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;flex-direction:column;gap:0.75rem;';
+      preguntas.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#f9f7f4;border:1px solid #e0dbd2;border-radius:6px;padding:0.75rem;';
+        card.innerHTML = `
+          <div style="font-size:0.78rem;font-weight:600;color:#8B1A1A;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;">Pregunta ${i + 1}</div>
+          <div style="font-size:0.9rem;color:#1a1a2e;margin-bottom:0.5rem;">${p.pregunta}</div>
+          <div style="font-size:0.82rem;color:#666;font-style:italic;">Respuesta de referencia: ${p.respuesta_correcta}</div>`;
+        wrapper.appendChild(card);
+      });
+      div.appendChild(wrapper);
+      msgs.appendChild(div);
+      scrollToBottom();
+    }
+
+    function addMessage(text, role, tokens) {
+      const msgs = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'msg ' + role;
+      const c = document.createElement('div');
+      if (role === 'assistant') {
+        c.innerHTML = renderizarTextoConPlaygrounds(text);
+      } else {
+        c.textContent = text;
+      }
+      div.appendChild(c);
+      if (tokens && role === 'assistant') {
+        const t = document.createElement('div');
+        t.className = 'token-info';
+        t.textContent = `Tokens: ${tokens.total_tokens} (${tokens.prompt_tokens} entrada + ${tokens.completion_tokens} salida) · $${tokens.coste_usd}`;
+        div.appendChild(t);
+      }
+      msgs.appendChild(div);
+      c.querySelectorAll('.pg-code').forEach(ta => runPG(ta));
+      scrollToBottom();
+    }
+
+    function showTyping() {
+      const msgs = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.id = 'typing';
+      div.className = 'msg assistant';
+      div.innerHTML = '<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+      msgs.appendChild(div);
+      scrollToBottom();
+    }
+
+    function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+
+    function renderSources(fuentes) {
+      const area = document.getElementById('sourcesArea');
+      if (!fuentes || fuentes.length === 0) { area.innerHTML = '<div class="empty-sidebar">No se encontraron fuentes</div>'; return; }
+      area.innerHTML = '';
+      fuentes.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'source-card';
+        card.innerHTML = `
+          <div class="source-file">📄 ${f.archivo || 'desconocido'}</div>
+          ${f.texto ? `<div class="source-snippet">"${f.texto}"</div>` : ''}
+          ${f.score ? `<span class="source-score">relevancia: ${f.score}</span>` : ''}`;
+        area.appendChild(card);
+      });
+    }
+
+    async function sendQuestion() {
+      const input = document.getElementById('questionInput');
+      const btn = document.getElementById('sendBtn');
+      const pregunta = input.value.trim();
+      if (!pregunta) return;
+      input.value = '';
+      autoResize(input);
+      btn.disabled = true;
+      addMessage(pregunta, 'user');
+      showTyping();
+
+      historialChat.push({ role: 'user', content: pregunta });
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ historial: historialChat })
+        });
+        const data = await res.json();
+        removeTyping();
+
+        if (data.error) {
+          addMessage('Error: ' + data.error, 'error');
+          historialChat.pop();
+        } else if (data.tipo === 'texto' && data.contenido === 'SIN_CONTENIDO') {
+          const tokenText = data.tokens?.total_tokens > 0 ? ` · Tokens: ${data.tokens.total_tokens} · $${data.tokens.coste_usd}` : '';
+          addMessage('No tengo información sobre ese tema en el material disponible.' + tokenText, 'error');
+          historialChat.pop();
+        } else {
+          mostrarRespuesta(data.tipo, data.contenido, data.tokens);
+          renderSources(data.fuentes);
+
+          let contenidoHistorial;
+          if (data.tipo === 'json') {
+            contenidoHistorial = 'TIPO:JSON\n' + JSON.stringify(data.contenido);
+          } else {
+            contenidoHistorial = 'TIPO:TEXTO\n' + data.contenido;
+          }
+          historialChat.push({ role: 'assistant', content: contenidoHistorial });
+        }
+      } catch (e) {
+        removeTyping();
+        addMessage('No se pudo conectar con el servidor.', 'error');
+        historialChat.pop();
+      } finally {
+        btn.disabled = false;
+        input.focus();
+      }
+    }
+  </script>
+
+</body>
+</html>
